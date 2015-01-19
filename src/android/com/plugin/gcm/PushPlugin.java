@@ -5,9 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import com.google.android.gcm.GCMRegistrar;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.*;
 import org.apache.cordova.CordovaWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +21,7 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String TAG = "PushPlugin";
 
 	public static final String REGISTER = "register";
+	public static final String SETUPCALLBACKS = "setupCallbacks";
 	public static final String UNREGISTER = "unregister";
 	public static final String EXIT = "exit";
 
@@ -42,7 +41,6 @@ public class PushPlugin extends CordovaPlugin {
 
 	@Override
 	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
-
 		boolean result = false;
 
 		Log.v(TAG, "execute: action=" + action);
@@ -77,6 +75,27 @@ public class PushPlugin extends CordovaPlugin {
 				gCachedExtras = null;
 			}
 
+		} else if (SETUPCALLBACKS.equals(action)) {
+			Log.v(TAG, "execute: data=" + data.toString());
+			try {
+			   JSONObject jo = data.getJSONObject(0);
+			   gWebView = this.webView;
+			   Log.v(TAG, "execute: jo=" + jo.toString());
+			   gECB = (String) jo.get("ecb");
+			   gSenderID = (String) jo.get("senderID");
+			   Log.v(TAG, "execute: ECB=" + gECB + " senderID=" + gSenderID);
+			   result = true;
+			   callbackContext.success();
+			} catch (JSONException e) {
+			   Log.e(TAG, "execute: Got JSON Exception " + e.getMessage());
+			   result = false;
+			   callbackContext.error(e.getMessage());
+			}
+			if ( gCachedExtras != null) {
+			   Log.v(TAG, "sending cached extras");
+			   sendExtras(gCachedExtras);
+			   gCachedExtras = null;
+			}
 		} else if (UNREGISTER.equals(action)) {
 
 			GCMRegistrar.unregister(getApplicationContext());
@@ -90,6 +109,7 @@ public class PushPlugin extends CordovaPlugin {
 			callbackContext.error("Invalid action : " + action);
 		}
 
+		
 		return result;
 	}
 

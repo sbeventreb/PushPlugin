@@ -142,6 +142,86 @@
 }
 */
 
+- (void)setupCallbacks:(CDVInvokedUrlCommand*)command;
+{
+    self.callbackId = command.callbackId;
+
+    NSMutableDictionary* options = [command.arguments objectAtIndex:0];
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        UIUserNotificationType UserNotificationTypes = UIUserNotificationTypeNone;
+#endif
+    UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeNone;
+
+    id badgeArg = [options objectForKey:@"badge"];
+    id soundArg = [options objectForKey:@"sound"];
+    id alertArg = [options objectForKey:@"alert"];
+
+    if ([badgeArg isKindOfClass:[NSString class]])
+    {
+        if ([badgeArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeBadge;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+            UserNotificationTypes |= UIUserNotificationTypeBadge;
+#endif
+        }
+    }
+    else if ([badgeArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeBadge;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        UserNotificationTypes |= UIUserNotificationTypeBadge;
+#endif
+    }
+
+    if ([soundArg isKindOfClass:[NSString class]])
+    {
+        if ([soundArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeSound;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+            UserNotificationTypes |= UIUserNotificationTypeSound;
+#endif
+    }
+    }
+    else if ([soundArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeSound;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        UserNotificationTypes |= UIUserNotificationTypeSound;
+#endif
+    }
+
+    if ([alertArg isKindOfClass:[NSString class]])
+    {
+        if ([alertArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeAlert;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+            UserNotificationTypes |= UIUserNotificationTypeAlert;
+#endif
+    }
+    }
+    else if ([alertArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeAlert;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        UserNotificationTypes |= UIUserNotificationTypeAlert;
+#endif
+    }
+
+    notificationTypes |= UIRemoteNotificationTypeNewsstandContentAvailability;
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+    UserNotificationTypes |= UIUserNotificationActivationModeBackground;
+#endif
+
+    self.callback = [options objectForKey:@"ecb"];
+
+    if (notificationTypes == UIRemoteNotificationTypeNone)
+        NSLog(@"PushPlugin.register: Push notification type is set to none");
+
+    isInline = NO;
+
+    if (notificationMessage)            // if there is a pending startup notification
+        [self notificationReceived];    // go ahead and process it
+}
+
+
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
 
     NSMutableDictionary *results = [NSMutableDictionary dictionary];

@@ -64,6 +64,24 @@ PushNotification.prototype.setApplicationIconBadgeNumber = function(successCallb
     cordova.exec(successCallback, errorCallback, "PushPlugin", "setApplicationIconBadgeNumber", [{badge: badge}]);
 };
 
+// Call this to set up callbacks for push notifications in case you already have a registerId/token from a previous register.
+// Content of [options] depends on whether we are working with APNS (iOS) or GCM (Android)
+PushNotification.prototype.setupCallbacks = function(successCallback, errorCallback, options) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.setupCallbacks failure: failure parameter not a function");
+        return;
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.setupCallbacks failure: success callback parameter must be a function");
+        return;
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "setupCallbacks", [options]);
+};
+
 //-------------------------------------------------------------------
 
 if(!window.plugins) {
